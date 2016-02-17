@@ -47,10 +47,11 @@ set fileformat=unix     "file mode is unix
 "system settings
 set lazyredraw          "no redraws in macros
 set confirm             "get a dialog when :q, :w, or :wq fails
-"set nobackup            "no backup~ files.
 set viminfo='20,\"500   "remember copy registers after quitting in the .viminfo file -- 20 jump links, regs up to 500 lines'
 set hidden              "remember undo after quitting
-set history=100          "keep 100 lines of command history
+set history=1000
+set backup
+
 set mouse=v             "use mouse in visual mode not normal,insert,command,help mode
 
 set encoding=utf-8              " setup the encoding to UTF-8
@@ -67,7 +68,6 @@ set fillchars+=vert:│           " better looking for windows separator
 set ttyfast                     " better screen redraw
 set title                       " set the terminal title to the current file
 set showcmd                     " shows partial commands
-set hidden                      " hide the inactive buffers
 set ruler                       " sets a permanent rule
 set lazyredraw                  " only redraws if it is needed
 set autoread                    " update a open file edited outside of Vim
@@ -92,15 +92,17 @@ let vimDir = '$HOME/.vim'
 let &runtimepath.=','.vimDir
 
 " Keep undo history across sessions by storing it in a file
-if has('persistent_undo')
+"if has('persistent_undo')
     let myUndoDir = expand(vimDir . '/undodir')
     " Create dirs
     call system('mkdir ' . vimDir)
     call system('mkdir ' . myUndoDir)
-    let &undodir = myUndoDir
     set undofile
-endif
+    let &undodir = myUndoDir
+"endif
 
+set undolevels=1000         " How many undos
+set undoreload=10000        " number of lines to save for undo
 
 
 " NEOBUNDLE {{{ ===============================================================
@@ -162,23 +164,27 @@ NeoBundleLazy 'osyo-manga/unite-quickfix', {'autoload':{'unite_sources':
             \ ['quickfix', 'location_list']}}
 NeoBundleLazy 'osyo-manga/unite-fold', {'autoload':{'unite_sources':'fold'}}
 NeoBundleLazy 'tacroe/unite-mark', {'autoload':{'unite_sources':'mark'}}
-NeoBundleLazy 'Shougo/neomru.vim', {'autoload':{'unite_sources': 
+NeoBundleLazy 'Shougo/neomru.vim', {'autoload':{'unite_sources':
             \['file_mru', 'directory_mru']}}
 
-
-NeoBundle 'davidhalter/jedi-vim.git'
 NeoBundle 'scrooloose/syntastic'
 NeoBundle 'tpope/vim-fugitive'
 NeoBundle 'tpope/vim-surround'
 NeoBundle 'tpope/vim-speeddating'
 NeoBundle 'Rykka/colorv.vim'
 
+NeoBundle 'Valloric/YouCompleteMe'
+
+NeoBundle 'davidhalter/jedi-vim.git'
+
+NeoBundle 'luochen1990/rainbow'
+
 " Powerful and advanced Snippets tool
 NeoBundle 'SirVer/ultisnips'
 " Snippets for Ultisnips
 NeoBundle 'honza/vim-snippets'
 
-NeoBundle 'kien/ctrlp.vim.git'
+NeoBundle 'ctrlpvim/ctrlp.vim.git'
 NeoBundle 'majutsushi/tagbar'
 
 NeoBundle 'Yggdroot/indentLine'
@@ -201,15 +207,19 @@ NeoBundle 'flazz/vim-colorschemes'
 
 NeoBundle 'airblade/vim-gitgutter'
 
+NeoBundle 'python-rope/rope.git'
+
 NeoBundle 'junegunn/vim-easy-align.git'
 
 NeoBundle 'ivanov/vim-ipython.git'
 
 NeoBundle 'jpalardy/vim-slime.git'
 
-NeoBundle 'severin-lemaignan/vim-minimap'
-
 NeoBundle 'unblevable/quick-scope'
+
+NeoBundle 'drmikehenry/vim-fontsize.git'
+
+NeoBundle 'vim-scripts/vim-auto-save.git'
 
 NeoBundleLazy 'elzr/vim-json', {'filetypes' : 'json'}
 
@@ -580,7 +590,7 @@ au FileType python setlocal foldlevel=1000
 
 " Folding {{{
 
-set foldmethod=marker
+set foldmethod=syntax
 
 " Toggle folding
 
@@ -709,6 +719,15 @@ function! NERDTreeToggleInCurDir()
 endfunction
 
 nnoremap <silent><Leader>X :call NERDTreeToggleInCurDir()<CR>
+"nnoremap <silent><Leader>E :call EnableNT()<CR>
+
+
+autocmd BufEnter * if &modifiable && bufname('')!~"\ColorV" && (bufname('')=~"\.py" || bufname('')=~"\.kv")  | NERDTreeFind | wincmd p | endif
+autocmd VimEnter * wincmd l
+
+"autocmd VimEnter * call NERDTreeToggleInCurDir()
+
+
 
 nnoremap <silent><Leader>h :/<C-R><C-w><CR>
 nnoremap <silent><Leader>H :nohl<CR>
@@ -745,28 +764,26 @@ let g:unite_source_directory_mru_time_format = '(%d-%m-%Y %H:%M:%S) '
 
 let g:junkfile#directory=expand($HOME."/.vim/tmp/junk")
 
-let g:jedi#completions_enabled = 1
 
-
-"let g:slime_python_ipython = 1
+let g:slime_python_ipython = 1
 
 let g:slime_target = "tmux"
 
 let g:slime_paste_file = "$HOME/.slime_paste"
 
-"let g:slime_paste_file = tempname()
-
-function! NTToggle()
-    let l:curwinnr = winnr()
-    NERDTreeFind
-    let l:curwinnr = winnr()
-endfunction
-
-autocmd BufEnter * if &modifiable | NERDTreeFind | wincmd p | endif
-autocmd VimEnter * wincmd l
+let g:slime_paste_file = tempname()
 
 
-set clipboard=unnamed
+if $TMUX == ''
+    set clipboard+=unnamed
+    set clipboard+=unnamedplus
+endif
+
+" use LocalLeader for movement between vim panes
+nnoremap <silent><LocalLeader>h :wincmd h<CR>
+nnoremap <silent><LocalLeader>j :wincmd j<CR>
+nnoremap <silent><LocalLeader>k :wincmd k<CR>
+nnoremap <silent><LocalLeader>l :wincmd l<CR>
 
 
 
@@ -807,36 +824,48 @@ let g:pymode_breakpoint_bind = '<Leader>B'
 
 let g:pymode_lint = 1
 let g:pymode_lint_on_write = 0
+let g:pymode_lint_message = 1
 let g:pymode_lint_checkers = ['pylint', 'pep8', 'mccabe', 'pep257']
 let g:pymode_lint_ignore = ''
 let g:pymode_virtualenv = 0
 let g:pymode_rope = 1
+let g:pymode_doc = 0
 
 let g:pymode_rope_completion = 0
 let g:pymode_rope_complete_on_dot = 0
+let g:pymode_rope_autoimport = 1
+let g:pymode_syntax_all = 1
 
 " }}}
 
 
-nnoremap <silent><Leader>p :n **/*.py<CR>
+autocmd FileType python setlocal completeopt-=preview
+
+
+nnoremap <silent><Leader>js :%!python -m json.tool<CR>
+
+nnoremap <silent><Leader>p :call OpenPythonRelatedFiles()<CR>
+
+function! OpenPythonRelatedFiles()
+    n **/*.kv
+    n **/*.py
+endfunction
+
+
+function! GoToOrOpenDefs()
+    try
+        exe "<C-c><g>"
+    catch /.*/
+        exe ":Unite -silent -no-quit grep:.<CR><C-R><C-w><CR>"
+    endtry
+    return 0
+endfunction
+
+
+nnoremap <silent><Leader>@ :CtrlPBufTagAll<CR>
 
 call ToggleRelativeAbsoluteNumber()
 call ToggleRelativeAbsoluteNumber()
-
-
-
-let g:jedi#auto_vim_configuration = 0
-let g:jedi#use_splits_not_buffers = "left"
-let g:jedi#popup_on_dot = 0
-let g:jedi#popup_select_first = 0
-
-let g:jedi#goto_command = "<leader>d"
-let g:jedi#goto_assignments_command = "<leader>g"
-let g:jedi#goto_definitions_command = ""
-let g:jedi#documentation_command = "K"
-let g:jedi#usages_command = "<leader>n"
-let g:jedi#completions_command = "<C-Space>"
-let g:jedi#rename_command = "<leader>r"
 
 
 " Start interactive EasyAlign in visual mode (e.g. vip<Enter>)
@@ -846,3 +875,17 @@ vmap <Enter> <Plug>(EasyAlign)
 nmap gt <Plug>(EasyAlign)
 
 let g:easy_align_bypass_fold = 1
+
+
+
+let g:auto_save = 1  " enable AutoSave on Vim startup
+let g:auto_save_no_updatetime = 1  " do not change the 'updatetime' option
+let g:auto_save_in_insert_mode = 0  " do not save while in insert mode
+let g:auto_save_silent = 1  " do not display the auto-save notification
+
+
+let g:jedi#auto_initialization = 1
+let g:jedi#auto_vim_configuration = 0
+let g:jedi#popup_on_dot = 0
+
+let g:rainbow_active = 1 "0 if you want to enable it later via :RainbowToggle
