@@ -177,6 +177,10 @@ NeoBundle 'Valloric/YouCompleteMe'
 
 NeoBundle 'davidhalter/jedi-vim.git'
 
+NeoBundle 'tacahiroy/ctrlp-funky'
+
+NeoBundle 'AndrewRadev/sideways.vim.git'
+
 NeoBundle 'luochen1990/rainbow'
 
 " Powerful and advanced Snippets tool
@@ -189,7 +193,9 @@ NeoBundle 'majutsushi/tagbar'
 
 NeoBundle 'Yggdroot/indentLine'
 
-NeoBundle 'bling/vim-airline'
+NeoBundle 'vim-airline/vim-airline'
+
+NeoBundle 'vim-airline/vim-airline-themes'
 
 NeoBundle 'terryma/vim-multiple-cursors.git'
 
@@ -220,6 +226,8 @@ NeoBundle 'unblevable/quick-scope'
 NeoBundle 'drmikehenry/vim-fontsize.git'
 
 NeoBundle 'vim-scripts/vim-auto-save.git'
+
+NeoBundle 'tweekmonster/braceless.vim'
 
 NeoBundleLazy 'elzr/vim-json', {'filetypes' : 'json'}
 
@@ -702,7 +710,7 @@ nnoremap <silent><Leader>s :Unite -silent -no-quit grep:.<CR>
 nnoremap <silent><Leader># :call TagTog() <CR>
 
 function! TagTog()
-    :noautocmd TagbarToggle
+    :TagbarToggle
 endfunction
 
 
@@ -722,16 +730,33 @@ nnoremap <silent><Leader>X :call NERDTreeToggleInCurDir()<CR>
 "nnoremap <silent><Leader>E :call EnableNT()<CR>
 
 
-autocmd BufEnter * if &modifiable && bufname('')!~"\ColorV" && (bufname('')=~"\.py" || bufname('')=~"\.kv")  | NERDTreeFind | wincmd p | endif
+autocmd BufEnter * if &modifiable && filereadable(expand('%:p'))  && bufname('')!~"\ColorV" && (bufname('')=~"\.py" || bufname('')=~"\.kv")  | NERDTreeFind | wincmd p | endif
+
+autocmd BufReadPost *
+\ if line("'\"") > 0 && line("'\"") <= line("$") |
+\   exe "normal! g`\"" |
+\ endif
+
+
+autocmd VimEnter * call NERDTreeToggleInCurDir()
+
 autocmd VimEnter * wincmd l
 
-"autocmd VimEnter * call NERDTreeToggleInCurDir()
+nnoremap <Leader>h :BracelessEnable +highlight-cc<CR>
+nnoremap <Leader>H :BracelessEnable -highlight-cc<CR>
 
+function! NeatFoldText()
+    let line = ' ' . substitute(getline(v:foldstart), '^\s*"\?\s*\|\s*"\?\s*{{' . '{\d*\s*', '', 'g') . ' '
+    let lines_count = v:foldend - v:foldstart + 1
+    let lines_count_text = '| ' . printf("%10s", lines_count . ' lines') . ' |'
+    let foldchar = matchstr(&fillchars, 'fold:\zs.')
+    let foldtextstart = strpart('+' . repeat(foldchar, v:foldlevel*2) . line, 0, (winwidth(0)*2)/3)
+    let foldtextend = lines_count_text . repeat(foldchar, 8)
+    let foldtextlength = strlen(substitute(foldtextstart . foldtextend, '.', 'x', 'g')) + &foldcolumn
+    return foldtextstart . repeat(foldchar, winwidth(0)-foldtextlength) . foldtextend
+endfunction
 
-
-nnoremap <silent><Leader>h :/<C-R><C-w><CR>
-nnoremap <silent><Leader>H :nohl<CR>
-
+set foldtext=NeatFoldText()
 
 
 call unite#filters#matcher_default#use(['matcher_fuzzy'])
@@ -816,29 +841,6 @@ vnoremap <expr> <silent> t Quick_scope_selective('t')
 vnoremap <expr> <silent> T Quick_scope_selective('T')
 
 
-
-" PythonMode {{{ -------------------------------------------------------------
-
-
-let g:pymode_breakpoint_bind = '<Leader>B'
-
-let g:pymode_lint = 1
-let g:pymode_lint_on_write = 0
-let g:pymode_lint_message = 1
-let g:pymode_lint_checkers = ['pylint', 'pep8', 'mccabe', 'pep257']
-let g:pymode_lint_ignore = ''
-let g:pymode_virtualenv = 0
-let g:pymode_rope = 1
-let g:pymode_doc = 0
-
-let g:pymode_rope_completion = 0
-let g:pymode_rope_complete_on_dot = 0
-let g:pymode_rope_autoimport = 1
-let g:pymode_syntax_all = 1
-
-" }}}
-
-
 autocmd FileType python setlocal completeopt-=preview
 
 
@@ -876,7 +878,26 @@ nmap gt <Plug>(EasyAlign)
 
 let g:easy_align_bypass_fold = 1
 
+" PythonMode {{{ -------------------------------------------------------------
 
+
+let g:pymode_breakpoint_bind = '<Leader>B'
+
+let g:pymode_lint = 1
+let g:pymode_lint_on_write = 0
+let g:pymode_lint_message = 1
+let g:pymode_lint_checkers = ['pylint', 'pep8', 'mccabe', 'pep257']
+let g:pymode_lint_ignore = ''
+let g:pymode_virtualenv = 0
+let g:pymode_rope = 1
+let g:pymode_doc = 0
+
+let g:pymode_rope_completion = 0
+let g:pymode_rope_complete_on_dot = 0
+let g:pymode_rope_autoimport = 1
+let g:pymode_syntax_all = 1
+
+" }}}
 
 let g:auto_save = 1  " enable AutoSave on Vim startup
 let g:auto_save_no_updatetime = 1  " do not change the 'updatetime' option
@@ -887,5 +908,14 @@ let g:auto_save_silent = 1  " do not display the auto-save notification
 let g:jedi#auto_initialization = 1
 let g:jedi#auto_vim_configuration = 0
 let g:jedi#popup_on_dot = 0
+
+autocmd VimEnter * BracelessEnable +indent
+
+nnoremap <c-j> :SidewaysLeft<cr>
+nnoremap <c-k> :SidewaysRight<cr>
+
+nnoremap <Leader>fu :CtrlPFunky<Cr>
+" narrow the list down with a word under cursor
+nnoremap <Leader>fU :execute 'CtrlPFunky ' . expand('<cword>')<Cr>
 
 let g:rainbow_active = 1 "0 if you want to enable it later via :RainbowToggle
