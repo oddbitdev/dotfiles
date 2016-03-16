@@ -229,6 +229,22 @@ NeoBundle 'vim-scripts/vim-auto-save.git'
 
 NeoBundle 'tweekmonster/braceless.vim'
 
+NeoBundle 'zirrostig/vim-schlepp'
+
+NeoBundle 'alfredodeza/coveragepy.vim'
+
+NeoBundle 'wannesm/wmgraphviz.vim'
+
+NeoBundle 'mnick/vim-pomodoro'
+
+NeoBundle 'jebaum/vim-tmuxify'
+
+NeoBundle 'MattesGroeger/vim-bookmarks'
+
+NeoBundle 'lervag/vimtex'
+
+NeoBundle 'tmux-plugins/vim-tmux-focus-events'
+
 NeoBundleLazy 'elzr/vim-json', {'filetypes' : 'json'}
 
 NeoBundleLazy 'klen/python-mode', {'autoload': {'filetypes': ['python']}}
@@ -907,6 +923,7 @@ let g:auto_save_silent = 1  " do not display the auto-save notification
 
 let g:jedi#auto_initialization = 1
 let g:jedi#auto_vim_configuration = 0
+
 let g:jedi#popup_on_dot = 0
 
 autocmd VimEnter * BracelessEnable +indent
@@ -919,3 +936,22 @@ nnoremap <Leader>fu :CtrlPFunky<Cr>
 nnoremap <Leader>fU :execute 'CtrlPFunky ' . expand('<cword>')<Cr>
 
 let g:rainbow_active = 1 "0 if you want to enable it later via :RainbowToggle
+
+
+vmap <unique> <up>    <Plug>SchleppUp
+vmap <unique> <down>  <Plug>SchleppDown
+vmap <unique> <left>  <Plug>SchleppLeft
+vmap <unique> <right> <Plug>SchleppRight
+
+
+" Duration of a pomodoro in minutes (default: 25)
+let g:pomodoro_time_work = 25
+
+" Duration of a break in minutes (default: 5)
+let g:pomodoro_time_slack = 5
+
+" Log completed pomodoros, 0 = False, 1 = True (default: 0)
+let g:pomodoro_do_log = 0
+
+" Path to the pomodoro log file (default: /tmp/pomodoro.log)
+let g:pomodoro_log_file = "/tmp/pomodoro.log"
