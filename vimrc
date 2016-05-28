@@ -13,6 +13,8 @@ nmap <Leader>l :call ToggleRelativeAbsoluteNumber<CR>
 
 
 "display settings
+set sidescroll=4
+set sidescrolloff=1
 set background=dark     "enable for dark terminals
 set nowrap              "dont wrap lines
 set scrolloff=8         "8 lines above/below cursor when scrolling
@@ -245,6 +247,8 @@ NeoBundle 'lervag/vimtex'
 
 NeoBundle 'tmux-plugins/vim-tmux-focus-events'
 
+NeoBundle 'amix/vim-zenroom.git'
+
 NeoBundleLazy 'elzr/vim-json', {'filetypes' : 'json'}
 
 NeoBundleLazy 'klen/python-mode', {'autoload': {'filetypes': ['python']}}
@@ -406,9 +410,9 @@ let g:airline#extensions#branch#enabled = 1
 let g:airline#extensions#whitespace#enabled = 1
 let g:airline#extensions#hunks#non_zero_only = 1
 
-" let g:airline#extensions#tabline#enabled = 2
-" let g:airline#extensions#tabline#fnamemod = ':t'
-" let g:airline#extensions#tabline#buffer_min_count = 1
+let g:airline#extensions#tabline#enabled = 2
+let g:airline#extensions#tabline#fnamemod = ':t'
+let g:airline#extensions#tabline#buffer_min_count = 1
 
 " }}}
 
@@ -926,7 +930,7 @@ let g:jedi#auto_vim_configuration = 0
 
 let g:jedi#popup_on_dot = 0
 
-autocmd VimEnter * BracelessEnable +indent
+autocmd VimEnter * BracelessEnable
 
 nnoremap <c-j> :SidewaysLeft<cr>
 nnoremap <c-k> :SidewaysRight<cr>
@@ -955,3 +959,4 @@ let g:pomodoro_do_log = 0
 
 " Path to the pomodoro log file (default: /tmp/pomodoro.log)
 let g:pomodoro_log_file = "/tmp/pomodoro.log"
+
