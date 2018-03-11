@@ -84,6 +84,8 @@ set backspace=indent,eol,start  " defines the backspace key behavior
 set virtualedit=all             " to edit where there is no actual character
 set more                        " to show pages using `more` in command
 
+set number relativenumber
+
 set cmdheight=1
 
 set guifont=FiraCode_Nerd_Font:h11
@@ -172,6 +174,7 @@ Plug 'neovimhaskell/haskell-vim'
 Plug 'jpalardy/vim-slime'
 Plug 'derekwyatt/vim-scala'
 Plug 'tpope/vim-speeddating'
+Plug 'sjl/gundo.vim'
 call plug#end()
 
 
