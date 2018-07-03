@@ -174,11 +174,34 @@ Plug 'neovimhaskell/haskell-vim'
 Plug 'jpalardy/vim-slime'
 Plug 'derekwyatt/vim-scala'
 Plug 'tpope/vim-speeddating'
-Plug 'sjl/gundo.vim'
+Plug 'simnalamburt/vim-mundo'
+Plug 'Shougo/vimproc.vim', {'do' : 'make'}
+Plug 'neomake/neomake'
+Plug 'Shougo/denite.nvim'
+Plug 'easymotion/vim-easymotion'
+Plug 'chriskempson/base16-vim'
+
+" Haskell
+Plug 'neovimhaskell/haskell-vim'
+Plug 'eagletmt/ghcmod-vim', { 'for': 'haskell'  }
+Plug 'eagletmt/neco-ghc', { 'for': 'haskell'  }
+Plug 'Twinside/vim-hoogle', { 'for': 'haskell'  }
+Plug 'mpickering/hlint-refactor-vim', { 'for': 'haskell'  }
+Plug 'alx741/vim-hindent'
+
+" Colorscheme
+Plug 'vim-scripts/wombat256.vim'"
 call plug#end()
 
 
-colorscheme gruvbox
+if filereadable(expand("~/.vimrc_background"))
+  let base16colorspace=256
+  source ~/.vimrc_background
+endif
+
+
+colorscheme base16-gruvbox-dark-medium
+
 
 "monokai, onedark
 
@@ -389,24 +412,53 @@ let g:limelight_paragraph_span = 0
 au FileType gitcommit set tw=72 | set spell | set colorcolumn=50
 
 
-function! TagTog()
-    :TagbarToggle
+" NERDTree {{{
+
+" Close nerdtree after a file is selected
+let NERDTreeQuitOnOpen = 1
+
+function! IsNERDTreeOpen()
+  return exists("t:NERDTreeBufName") && (bufwinnr(t:NERDTreeBufName) != -1)
 endfunction
 
-
-
-function! NERDTreeToggleInCurDir()
-  " If NERDTree is open in the current buffer
-  if (exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1)
-    exe ":noautocmd NERDTreeClose"
-    set eventignore+=BufEnter
+function! ToggleFindNerd()
+  if IsNERDTreeOpen()
+    exec ':NERDTreeToggle'
   else
-    set eventignore-=BufEnter
-    exe ":NERDTreeFind"
+    exec ':NERDTreeFind'
   endif
 endfunction
 
-nnoremap <silent><Leader>X :call NERDTreeToggleInCurDir()<CR>
+" If nerd tree is closed, find current file, if open, close it
+nmap <silent> <leader>f <ESC>:call ToggleFindNerd()<CR>
+nmap <silent> <leader>F <ESC>:NERDTreeToggle<CR>
+
+" }}}
+
+" Alignment {{{
+
+" Stop Align plugin from forcing its mappings on us
+let g:loaded_AlignMapsPlugin=1
+" Align on equal signs
+map <Leader>a= :Align =<CR>
+" Align on commas
+map <Leader>a, :Align ,<CR>
+" Align on pipes
+map <Leader>a<bar> :Align <bar><CR>
+" Prompt for align character
+map <leader>ap :Align
+" }}}
+
+" Tags {{{
+
+map <leader>tt :TagbarToggle<CR>
+
+set tags=tags;/
+set cst
+set csverb
+
+" }}}
+
 
 if $TMUX == ''
     set clipboard+=unnamed
@@ -441,6 +493,8 @@ let g:pymode_rope_complete_on_dot = 0
 let g:pymode_rope_autoimport = 1
 let g:pymode_syntax_all = 1
 
+let g:syntastic_python_python_exec = '/usr/local/bin/python3.6'
+
 " Duration of a pomodoro in minutes (default: 25)
 let g:pomodoro_time_work = 25
 
@@ -453,18 +507,216 @@ let g:pomodoro_do_log = 0
 " Path to the pomodoro log file (default: /tmp/pomodoro.log)
 let g:pomodoro_log_file = "/tmp/pomodoro.log"
 
+
+" Show undo tree
+nmap <silent> <leader>u :MundoToggle<CR>
+
+
 "autocmd VimEnter * call NERDTreeToggleInCurDir()
 "
 "autocmd VimEnter * wincmd l
 "
 "autocmd BufEnter * if &modifiable && filereadable(expand('%:p'))  && bufname('')!~"\ColorV" && (bufname('')=~"\.py" || bufname('')=~"\.kv")  | NERDTreeFind | wincmd p | endif
 
+" EasyMotion {{{
+" <Leader>f{char} to move to {char}
+map  <Leader>f <Plug>(easymotion-bd-f)
+nmap <Leader>f <Plug>(easymotion-overwin-f)
 
+" s{char}{char} to move to {char}{char}
+nmap s <Plug>(easymotion-overwin-f2)
+
+" Move to line
+map <Leader>L <Plug>(easymotion-bd-jk)
+nmap <Leader>L <Plug>(easymotion-overwin-line)
+
+" Move to word
+map  <Leader>w <Plug>(easymotion-bd-w)
+nmap <Leader>w <Plug>(easymotion-overwin-w)
+" }}}
+
+" Editing mappings {{{
+
+" Utility function to delete trailing white space
+func! DeleteTrailingWS()
+  exe "normal mz"
+  %s/\s\+$//ge
+  exe "normal `z"
+endfunc
+
+" }}}
+
+
+
+" Tags {{{
+
+set tags+=codex.tags;/
+
+let g:tagbar_type_haskell = {
+    \ 'ctagsbin'  : 'hasktags',
+    \ 'ctagsargs' : '-x -c -o-',
+    \ 'kinds'     : [
+        \  'm:modules:0:1',
+        \  'd:data: 0:1',
+        \  'd_gadt: data gadt:0:1',
+        \  't:type names:0:1',
+        \  'nt:new types:0:1',
+        \  'c:classes:0:1',
+        \  'cons:constructors:1:1',
+        \  'c_gadt:constructor gadt:1:1',
+        \  'c_a:constructor accessors:1:1',
+        \  'ft:function types:1:1',
+        \  'fi:function implementations:0:1',
+        \  'o:others:0:1'
+    \ ],
+    \ 'sro'        : '.',
+    \ 'kind2scope' : {
+        \ 'm' : 'module',
+        \ 'c' : 'class',
+        \ 'd' : 'data',
+        \ 't' : 'type'
+    \ },
+    \ 'scope2kind' : {
+        \ 'module' : 'm',
+        \ 'class'  : 'c',
+        \ 'data'   : 'd',
+        \ 'type'   : 't'
+    \ }
+\ }
+
+" Generate haskell tags with codex and hscope
+map <leader>tg :!codex update --force<CR>:call system("git-hscope -X TemplateHaskell")<CR><CR>:call LoadHscope()<CR>
+
+set csprg=hscope
+set csto=1 " search codex tags first
+
+nnoremap <silent> <C-\> :cs find c <C-R>=expand("<cword>")<CR><CR>
+" Automatically make cscope connections
+function! LoadHscope()
+  let db = findfile("hscope.out", ".;")
+  if (!empty(db))
+    let path = strpart(db, 0, match(db, "/hscope.out$"))
+    set nocscopeverbose " suppress 'duplicate connection' error
+    exe "cs add " . db . " " . path
+    set cscopeverbose
+  endif
+endfunction
+au BufEnter /*.hs call LoadHscope()
+
+" }}}
+
+" Hoogle {{{
+" Hoogle the word under the cursor
+nnoremap <silent> <leader>hh :Hoogle<CR>
+
+" Hoogle and prompt for input
+nnoremap <leader>hH :Hoogle 
+
+" Hoogle for detailed documentation (e.g. "Functor")
+nnoremap <silent> <leader>hi :HoogleInfo<CR>
+
+" Hoogle for detailed documentation and prompt for input
+nnoremap <leader>hI :HoogleInfo 
+
+" Hoogle, close the Hoogle window
+nnoremap <silent> <leader>hz :HoogleClose<CR>
+
+" }}}
+
+" Formatting {{{
+" Use hindent instead of par for haskell buffers
+autocmd FileType haskell let &formatprg="hindent --tab-size 2 -XQuasiQuotes"
+
+" Enable some tabular presets for Haskell
+let g:haskell_tabular = 1
+
+" Delete trailing white space on save
+augroup whitespace
+  autocmd!
+  autocmd BufWrite *.hs :call DeleteTrailingWS()
+augroup END
+
+" }}}
+
+"Completion, Syntax check, Lint & Refactor {{{
+
+augroup haskell
+  autocmd!
+  autocmd FileType haskell map <silent> <leader><cr> :noh<cr>:GhcModTypeClear<cr>
+  autocmd FileType haskell setlocal omnifunc=necoghc#omnifunc
+augroup END
+
+" Provide (neco-ghc) omnicompletion
+if has("gui_running")
+  imap <c-space> <c-r>=SuperTabAlternateCompletion("\<lt>c-x>\<lt>c-o>")<cr>
+else " no gui
+  if has("unix")
+    inoremap <Nul> <c-r>=SuperTabAlternateCompletion("\<lt>c-x>\<lt>c-o>")<cr>
+  endif
+endif
+
+" Disable hlint-refactor-vim's default keybindings
+let g:hlintRefactor#disableDefaultKeybindings = 1
+
+" hlint-refactor-vim keybindings
+map <silent> <leader>hr :call ApplyOneSuggestion()<CR>
+map <silent> <leader>hR :call ApplyAllSuggestions()<CR>
+
+" Show types in completion suggestions
+let g:necoghc_enable_detailed_browse = 1
+" Resolve ghcmod base directory
+au FileType haskell let g:ghcmod_use_basedir = getcwd()
+
+" Type of expression under cursor
+nmap <silent> <leader>ht :GhcModType<CR>
+" Insert type of expression under cursor
+nmap <silent> <leader>hT :GhcModTypeInsert<CR>
+" GHC errors and warnings
+nmap <silent> <leader>hc :Neomake ghcmod<CR>
+
+" open the neomake error window automatically when an error is found
+let g:neomake_open_list = 2
+
+" Fix path issues from vim.wikia.com/wiki/Set_working_directory_to_the_current_file
+let s:default_path = escape(&path, '\ ') " store default value of 'path'
+" Always add the current file's directory to the path and tags list if not
+" already there. Add it to the beginning to speed up searches.
+autocmd BufRead *
+      \ let s:tempPath=escape(escape(expand("%:p:h"), ' '), '\ ') |
+      \ exec "set path-=".s:tempPath |
+      \ exec "set path-=".s:default_path |
+      \ exec "set path^=".s:tempPath |
+      \ exec "set path^=".s:default_path
+
+" Haskell Lint
+nmap <silent> <leader>hl :Neomake hlint<CR>
+
+" Options for Haskell Syntax Check
+let g:neomake_haskell_ghc_mod_args = '-g-Wall'
+
+" }}}
+
+" Haskell syntax {{{
 let g:haskell_enable_quantification = 1   " to enable highlighting of `forall`
 let g:haskell_enable_recursivedo = 1      " to enable highlighting of `mdo` and `rec`
 let g:haskell_enable_arrowsyntax = 1      " to enable highlighting of `proc`
 let g:haskell_enable_pattern_synonyms = 1 " to enable highlighting of `pattern`
 let g:haskell_enable_typeroles = 1        " to enable highlighting of type roles
 let g:haskell_enable_static_pointers = 1  " to enable highlighting of `static`
-let g:haskell_backpack = 1                " to enable highlighting of backpack keywords
+let g:haskell_backpack = 1                " to enable highlighting of backpack keywords/"
+" }}}
+
+" Point Conversion {{{
+
+function! Pointfree()
+  call setline('.', split(system('pointfree '.shellescape(join(getline(a:firstline, a:lastline), "\n"))), "\n"))
+endfunction
+vnoremap <silent> <leader>h. :call Pointfree()<CR>
+
+function! Pointful()
+  call setline('.', split(system('pointful '.shellescape(join(getline(a:firstline, a:lastline), "\n"))), "\n"))
+endfunction
+vnoremap <silent> <leader>h> :call Pointful()<CR>
+
+" }}}
 
