@@ -35,7 +35,6 @@ set matchtime=2         "show matching bracket for 0.2 seconds
 set matchpairs+=<:>     "specially for html
 
 ""editor settings
-set esckeys             "map missed escape sequences enables keypad keys
 set ignorecase          "case insensitive searching
 set smartcase           "but become case sensitive if you type uppercase characters
 set smartindent         "smart auto indenting
@@ -116,9 +115,13 @@ let &runtimepath.=','.vimDir
     let &undodir = myUndoDir
 "endif
 
+set swapfile
+set backupdir=~/tmp
+
 set undolevels=1000         " How many undos
 set undoreload=10000        " number of lines to save for undo
 
+set guicursor=
 
 "##################################
 " VIM PLUGINS
@@ -145,7 +148,6 @@ Plug 'valloric/youcompleteme'
 Plug 'honza/vim-snippets'
 Plug 'yggdroot/indentline'
 Plug 'elzr/vim-json'
-Plug 'python-mode/python-mode'
 Plug 'luochen1990/rainbow'
 Plug 'SirVer/ultisnips'
 Plug 'junegunn/limelight.vim'
@@ -170,7 +172,6 @@ Plug 'farmergreg/vim-lastplace'
 Plug 'rafi/awesome-vim-colorschemes'
 Plug 'trevordmiller/nova-vim'
 Plug 'crusoexia/vim-monokai'
-Plug 'neovimhaskell/haskell-vim'
 Plug 'jpalardy/vim-slime'
 Plug 'derekwyatt/vim-scala'
 Plug 'tpope/vim-speeddating'
@@ -180,14 +181,26 @@ Plug 'neomake/neomake'
 Plug 'Shougo/denite.nvim'
 Plug 'easymotion/vim-easymotion'
 Plug 'chriskempson/base16-vim'
+Plug 'godlygeek/tabular'
+Plug 'Twinside/vim-hoogle'
 
 " Haskell
+Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': './install.sh' }
 Plug 'neovimhaskell/haskell-vim'
-Plug 'eagletmt/ghcmod-vim', { 'for': 'haskell'  }
-Plug 'eagletmt/neco-ghc', { 'for': 'haskell'  }
-Plug 'Twinside/vim-hoogle', { 'for': 'haskell'  }
-Plug 'mpickering/hlint-refactor-vim', { 'for': 'haskell'  }
-Plug 'alx741/vim-hindent'
+
+let g:LanguageClient_serverCommands = { 'haskell': ['hie-wrapper', '--lsp'], }
+let g:LanguageClient_rootMarkers = ['*.cabal', 'stack.yaml']
+
+
+nnoremap <F5> :call LanguageClient_contextMenu()<CR>
+map <Leader>lk :call LanguageClient#textDocument_hover()<CR>
+map <Leader>lg :call LanguageClient#textDocument_definition()<CR>
+map <Leader>lr :call LanguageClient#textDocument_rename()<CR>
+map <Leader>lf :call LanguageClient#textDocument_formatting()<CR>
+map <Leader>lb :call LanguageClient#textDocument_references()<CR>
+map <Leader>la :call LanguageClient#textDocument_codeAction()<CR>
+map <Leader>ls :call LanguageClient#textDocument_documentSymbol()<CR>
+
 
 " Colorscheme
 Plug 'vim-scripts/wombat256.vim'"
@@ -200,7 +213,7 @@ if filereadable(expand("~/.vimrc_background"))
 endif
 
 
-colorscheme base16-gruvbox-dark-medium
+colorscheme solarized8
 
 
 "monokai, onedark
@@ -624,11 +637,13 @@ nnoremap <silent> <leader>hz :HoogleClose<CR>
 " }}}
 
 " Formatting {{{
-" Use hindent instead of par for haskell buffers
-autocmd FileType haskell let &formatprg="hindent --tab-size 2 -XQuasiQuotes"
 
 " Enable some tabular presets for Haskell
 let g:haskell_tabular = 1
+nnoremap <leader>= :Tabularize /=<CR>
+nnoremap <leader>- :Tabularize /-><CR>
+nnoremap <leader>, :Tabularize /,<CR>
+nnoremap <leader># :Tabularize /#-}<CR>
 
 " Delete trailing white space on save
 augroup whitespace
@@ -638,63 +653,6 @@ augroup END
 
 " }}}
 
-"Completion, Syntax check, Lint & Refactor {{{
-
-augroup haskell
-  autocmd!
-  autocmd FileType haskell map <silent> <leader><cr> :noh<cr>:GhcModTypeClear<cr>
-  autocmd FileType haskell setlocal omnifunc=necoghc#omnifunc
-augroup END
-
-" Provide (neco-ghc) omnicompletion
-if has("gui_running")
-  imap <c-space> <c-r>=SuperTabAlternateCompletion("\<lt>c-x>\<lt>c-o>")<cr>
-else " no gui
-  if has("unix")
-    inoremap <Nul> <c-r>=SuperTabAlternateCompletion("\<lt>c-x>\<lt>c-o>")<cr>
-  endif
-endif
-
-" Disable hlint-refactor-vim's default keybindings
-let g:hlintRefactor#disableDefaultKeybindings = 1
-
-" hlint-refactor-vim keybindings
-map <silent> <leader>hr :call ApplyOneSuggestion()<CR>
-map <silent> <leader>hR :call ApplyAllSuggestions()<CR>
-
-" Show types in completion suggestions
-let g:necoghc_enable_detailed_browse = 1
-" Resolve ghcmod base directory
-au FileType haskell let g:ghcmod_use_basedir = getcwd()
-
-" Type of expression under cursor
-nmap <silent> <leader>ht :GhcModType<CR>
-" Insert type of expression under cursor
-nmap <silent> <leader>hT :GhcModTypeInsert<CR>
-" GHC errors and warnings
-nmap <silent> <leader>hc :Neomake ghcmod<CR>
-
-" open the neomake error window automatically when an error is found
-let g:neomake_open_list = 2
-
-" Fix path issues from vim.wikia.com/wiki/Set_working_directory_to_the_current_file
-let s:default_path = escape(&path, '\ ') " store default value of 'path'
-" Always add the current file's directory to the path and tags list if not
-" already there. Add it to the beginning to speed up searches.
-autocmd BufRead *
-      \ let s:tempPath=escape(escape(expand("%:p:h"), ' '), '\ ') |
-      \ exec "set path-=".s:tempPath |
-      \ exec "set path-=".s:default_path |
-      \ exec "set path^=".s:tempPath |
-      \ exec "set path^=".s:default_path
-
-" Haskell Lint
-nmap <silent> <leader>hl :Neomake hlint<CR>
-
-" Options for Haskell Syntax Check
-let g:neomake_haskell_ghc_mod_args = '-g-Wall'
-
-" }}}
 
 " Haskell syntax {{{
 let g:haskell_enable_quantification = 1   " to enable highlighting of `forall`
