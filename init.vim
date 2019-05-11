@@ -75,13 +75,6 @@ Plug 'tomasr/molokai'
 Plug 'fatih/vim-go', {'do': ':GoInstallBinaries'}
 
 
-" haskell
-"" Haskell Bundle
-Plug 'eagletmt/neco-ghc'
-Plug 'dag/vim2hs'
-Plug 'pbrisbin/vim-syntax-shakespeare'
-
-
 " html
 "" HTML Bundle
 Plug 'hail2u/vim-css3-syntax'
@@ -97,7 +90,6 @@ Plug 'jelera/vim-javascript-syntax'
 
 " python
 "" Python Bundle
-Plug 'davidhalter/jedi-vim'
 Plug 'raimon49/requirements.txt.vim', {'for': 'requirements'}
 
 

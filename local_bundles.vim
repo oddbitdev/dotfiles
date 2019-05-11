@@ -1,7 +1,5 @@
 Plug 'kien/ctrlp.vim'
 Plug 'tacahiroy/ctrlp-funky'
-Plug 'morhetz/gruvbox'
-Plug 'nightsense/stellarized'
 Plug 'bling/vim-bufferline'
 Plug 'easymotion/vim-easymotion'
 Plug 'haya14busa/incsearch.vim'
@@ -30,23 +28,22 @@ Plug 'Shougo/denite.nvim'
 Plug 'chemzqm/denite-extra'
 Plug 'farmergreg/vim-lastplace'
 Plug 'rafi/awesome-vim-colorschemes'
-Plug 'trevordmiller/nova-vim'
-Plug 'crusoexia/vim-monokai'
 Plug 'jpalardy/vim-slime'
 Plug 'tpope/vim-speeddating'
 Plug 'simnalamburt/vim-mundo'
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}
 Plug 'neomake/neomake'
 Plug 'chriskempson/base16-vim'
-Plug 'valloric/youcompleteme'
 Plug 'godlygeek/tabular'
 Plug 'rainglow/vim'
 Plug 'tmhedberg/SimpylFold'
+Plug 'morhetz/gruvbox'
 Plug 'ambv/black'
 Plug 'ntpeters/vim-better-whitespace'
-Plug 'zchee/deoplete-jedi'
 Plug 'vim-scripts/vim-auto-save'
 Plug 'lilydjwg/colorizer'
+Plug 'AlessandroYorba/Despacio'
+Plug 'AlessandroYorba/Arcadia'
 Plug 'numirias/semshi', {'do': ':UpdateRemotePlugins'}
 Plug 'inside/vim-search-pulse'
 Plug 'terryma/vim-smooth-scroll'
@@ -54,3 +51,15 @@ Plug 'RRethy/vim-illuminate'
 Plug 'Nequo/vim-allomancer'
 Plug 'vim-scripts/genutils'
 Plug 'albfan/vim-breakpts'
+Plug 'neoclide/coc.nvim', {'tag': '*', 'do': './install.sh'}
+Plug 'neoclide/coc-tsserver', {'do': 'yarn install --frozen-lockfile'}
+Plug 'neoclide/coc-python'
+Plug 'neoclide/coc-json'
+Plug 'neoclide/coc-vetur'
+Plug 'neovimhaskell/haskell-vim'
+Plug 'bcicen/vim-vice'
+Plug 'autozimu/LanguageClient-neovim', {
+    \ 'branch': 'next',
+    \ 'do': 'bash install.sh',
+    \ }
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
